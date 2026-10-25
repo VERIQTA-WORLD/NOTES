@@ -1,0 +1,2 @@
+{"timestamp": "2026-01-15T10:05:06Z", "level": "ERROR", "service": "proxy", "event": "request_completed", "message": "Upstream unavailable", "request_id": "veriqta-checkout-42", "status": 502, "path": "/api/users", "duration_ms": 1}
+{"timestamp": "2026-01-15T10:06:12Z", "level": "INFO", "service": "proxy", "event": "request_completed", "message": "Request completed", "request_id": "veriqta-recovery-1", "status": 200, "path": "/api/users", "duration_ms": 8}

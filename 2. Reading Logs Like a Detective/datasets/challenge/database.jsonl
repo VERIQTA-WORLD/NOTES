@@ -1,0 +1,3 @@
+{"timestamp": "2026-01-15T10:04:58Z", "level": "ERROR", "service": "postgres", "event": "write_failed", "message": "could not write to file pg_wal: No space left on device", "request_id": "veriqta-checkout-42", "error_code": "ENOSPC"}
+{"timestamp": "2026-01-15T10:04:59Z", "level": "FATAL", "service": "postgres", "event": "shutdown", "message": "Database shutting down after write failure", "request_id": "veriqta-checkout-42"}
+{"timestamp": "2026-01-15T10:06:08Z", "level": "INFO", "service": "postgres", "event": "ready", "message": "Database is ready to accept connections", "request_id": "veriqta-recovery-1"}

@@ -1,0 +1,2 @@
+{"timestamp": "2026-01-15T09:40:00Z", "level": "WARN", "service": "kubelet", "event": "old_container_terminated", "message": "Previous analytics Pod OOMKilled; different workload", "request_id": "unrelated-analytics", "pod": "analytics-old"}
+{"timestamp": "2026-01-15T10:05:05Z", "level": "WARN", "service": "kubelet", "event": "BackOff", "message": "Back-off restarting failed container api", "request_id": "veriqta-checkout-42", "pod": "veriqta-api-incident"}

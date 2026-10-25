@@ -1,0 +1,3 @@
+{"timestamp": "2026-01-15T10:15:20Z", "level": "INFO", "service": "web", "event": "startup", "message": "Server started", "request_id": "veriqta-001"}
+not JSON
+{"timestamp": "2026-01-15T10:00:00", "level": "INFO"}

@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: veriqta
+      POSTGRES_PASSWORD: veriqta-lab-only-password
+      POSTGRES_DB: veriqta
+    command: ["postgres", "-c", "log_connections=on", "-c", "log_disconnections=on", "-c", "log_statement=all", "-c", "log_line_prefix=%m [%p] app=%a "]
+    volumes: ["veriqta-db:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U veriqta -d veriqta"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+    logging:
+      driver: local
+      options: {max-size: "5m", max-file: "3"}
+  app:
+    environment:
+      REQUIRE_DB: "1"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: veriqta
+      DB_USER: veriqta
+      DB_PASSWORD: veriqta-lab-only-password
+    depends_on:
+      db: {condition: service_healthy}
+volumes:
+  veriqta-db:

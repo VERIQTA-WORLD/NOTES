@@ -1,0 +1,5 @@
+2026-01-15T10:15:20Z INFO [web] request_id=veriqta-001 Server started
+2026-01-15T10:16:05Z INFO [db-client] request_id=veriqta-001 Connected to database
+2026-01-15T10:17:12Z ERROR [db-client] request_id=veriqta-001 Connection lost
+2026-01-15T10:17:30Z INFO [web] request_id=veriqta-001 Retrying database connection
+2026-01-15T10:18:05Z INFO [db-client] request_id=veriqta-001 Connected to database

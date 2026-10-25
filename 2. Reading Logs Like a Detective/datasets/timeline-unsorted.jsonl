@@ -1,0 +1,8 @@
+{"timestamp": "2026-01-15T14:21:10Z", "level": "INFO", "service": "api", "event": "request_started", "message": "Processing request", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T14:21:15Z", "level": "ERROR", "service": "db-client", "event": "db_connection_failed", "message": "Database connection refused", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T14:21:12Z", "level": "INFO", "service": "api", "event": "payment_call", "message": "Calling payment service", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T14:21:20Z", "level": "ERROR", "service": "api", "event": "payment_timeout", "message": "Payment service timeout", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T14:21:05Z", "level": "INFO", "service": "proxy", "event": "request_received", "message": "Checkout request received", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T14:21:25Z", "level": "ERROR", "service": "api", "event": "order_failed", "message": "Failed to complete order", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T14:21:18Z", "level": "WARN", "service": "payment", "event": "slow_dependency", "message": "Slow response while waiting for dependency", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T14:21:30Z", "level": "ERROR", "service": "worker", "event": "retry_exhausted", "message": "Job failed: retry limit reached", "request_id": "veriqta-001"}

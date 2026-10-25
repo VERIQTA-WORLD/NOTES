@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: veriqta-broken
+  namespace: veriqta-logs
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: veriqta-broken}
+  template:
+    metadata:
+      labels: {app: veriqta-broken}
+    spec:
+      containers:
+        - name: api
+          image: veriqta-log-lab:1.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: REQUIRE_DB, value: "1"}
+          resources:
+            requests: {cpu: 20m, memory: 48Mi}
+            limits: {cpu: 200m, memory: 192Mi}

@@ -1,0 +1,5 @@
+{"timestamp": "2026-01-15T10:15:20Z", "level": "INFO", "service": "web", "event": "startup", "message": "Server started", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T10:16:05Z", "level": "INFO", "service": "db-client", "event": "db_connected", "message": "Connected to database", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T10:17:12Z", "level": "ERROR", "service": "db-client", "event": "db_connection_lost", "message": "Connection lost", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T10:17:30Z", "level": "INFO", "service": "web", "event": "db_retry", "message": "Retrying database connection", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T10:18:05Z", "level": "INFO", "service": "db-client", "event": "db_connected", "message": "Connected to database", "request_id": "veriqta-001"}

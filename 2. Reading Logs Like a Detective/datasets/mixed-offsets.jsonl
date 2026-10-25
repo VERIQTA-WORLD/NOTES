@@ -1,0 +1,2 @@
+{"timestamp": "2026-01-15T16:21:15+02:00", "level": "ERROR", "service": "db-client", "event": "db_connection_failed", "message": "Database connection refused", "request_id": "veriqta-001"}
+{"timestamp": "2026-01-15T09:21:12-05:00", "level": "INFO", "service": "api", "event": "payment_call", "message": "Calling payment service", "request_id": "veriqta-001"}

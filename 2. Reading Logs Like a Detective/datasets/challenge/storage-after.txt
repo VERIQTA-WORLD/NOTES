@@ -1,0 +1,4 @@
+Captured: 2026-01-15T10:06:05Z
+Filesystem         Size Used Avail Use% Mounted on
+/dev/veriqta-data    10G   2G    8G  20% /var/lib/postgresql/data
+Mitigation record: capped export job; moved reviewed disposable debug exports off database volume; retained database/WAL files intact.

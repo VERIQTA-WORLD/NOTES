@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: veriqta-logs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: veriqta-api
+  namespace: veriqta-logs
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: veriqta-api}
+  template:
+    metadata:
+      labels: {app: veriqta-api}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+      containers:
+        - name: api
+          image: veriqta-log-lab:1.0
+          imagePullPolicy: IfNotPresent
+          ports: [{containerPort: 8000}]
+          resources:
+            requests: {cpu: 50m, memory: 48Mi}
+            limits: {cpu: 300m, memory: 192Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          readinessProbe:
+            httpGet: {path: /health, port: 8000}
+            periodSeconds: 3
+          livenessProbe:
+            httpGet: {path: /health, port: 8000}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: veriqta-api
+  namespace: veriqta-logs
+spec:
+  selector: {app: veriqta-api}
+  ports: [{port: 80, targetPort: 8000}]

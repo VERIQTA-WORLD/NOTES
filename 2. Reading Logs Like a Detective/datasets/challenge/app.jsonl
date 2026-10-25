@@ -1,0 +1,4 @@
+{"timestamp": "2026-01-15T10:04:20Z", "level": "WARN", "service": "api", "event": "cache_miss", "message": "Cache miss; database fallback expected", "request_id": "unrelated-cache"}
+{"timestamp": "2026-01-15T10:05:02Z", "level": "ERROR", "service": "api", "event": "db_connection_failed", "message": "Could not connect to database", "request_id": "veriqta-checkout-42", "error_code": "ECONNREFUSED"}
+{"timestamp": "2026-01-15T10:05:03Z", "level": "ERROR", "service": "api", "event": "startup_failed", "message": "Application exiting after failed startup check", "request_id": "veriqta-checkout-42"}
+{"timestamp": "2026-01-15T10:06:10Z", "level": "INFO", "service": "api", "event": "db_connected", "message": "Database connection restored", "request_id": "veriqta-recovery-1"}
