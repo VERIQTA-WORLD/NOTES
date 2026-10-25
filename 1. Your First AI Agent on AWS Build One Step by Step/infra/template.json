@@ -1,0 +1,579 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Description": "Read-only Bedrock Converse Veriqta agent, authenticated HTTP API and isolated session history.",
+  "Parameters": {
+    "ModelId": {
+      "Type": "String",
+      "Description": "Verified Converse/tool-use model or inference profile ID/ARN"
+    },
+    "BedrockResources": {
+      "Type": "CommaDelimitedList",
+      "Description": "Exact permitted model ARNs; include profile and backing model ARNs when using cross-region inference"
+    },
+    "AllowedRegions": {
+      "Type": "String",
+      "Default": "us-east-1"
+    },
+    "DomainPrefix": {
+      "Type": "String",
+      "AllowedPattern": "[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?",
+      "Description": "Globally available Cognito domain prefix"
+    },
+    "AlertEmail": {
+      "Type": "String"
+    },
+    "WebOrigin": {
+      "Type": "String",
+      "Default": "http://localhost:8080"
+    },
+    "CallbackUrl": {
+      "Type": "String",
+      "Default": "http://localhost:8080/"
+    }
+  },
+  "Resources": {
+    "Sessions": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "BillingMode": "PAY_PER_REQUEST",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "expires_at",
+          "Enabled": true
+        },
+        "SSESpecification": {
+          "SSEEnabled": true
+        }
+      }
+    },
+    "DataBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerEnforced"
+            }
+          ]
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "DataBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "DataBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "DataBucket",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Sub": "${DataBucket.Arn}/*"
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "AgentLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/aws/lambda/${AWS::StackName}-agent"
+        },
+        "RetentionInDays": 7
+      }
+    },
+    "ApiLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "RetentionInDays": 7
+      }
+    },
+    "Role": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "VeriqtaAgentRuntime",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "bedrock:InvokeModel"
+                  ],
+                  "Resource": {
+                    "Ref": "BedrockResources"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:DescribeInstances",
+                    "cloudwatch:DescribeAlarms",
+                    "cloudwatch:GetMetricStatistics"
+                  ],
+                  "Resource": "*",
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Fn::Split": [
+                          ",",
+                          {
+                            "Ref": "AllowedRegions"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:ListAllMyBuckets",
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:GetObject",
+                  "Resource": {
+                    "Fn::Sub": "${DataBucket.Arn}/notes/*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "Sessions",
+                      "Arn"
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-agent:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "logs:FilterLogEvents",
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "AgentLogs",
+                      "Arn"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "UserPool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Properties": {
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": true
+        },
+        "UsernameAttributes": [
+          "email"
+        ],
+        "AutoVerifiedAttributes": [
+          "email"
+        ],
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 12,
+            "RequireLowercase": true,
+            "RequireUppercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": true,
+            "TemporaryPasswordValidityDays": 1
+          }
+        }
+      }
+    },
+    "Scopes": {
+      "Type": "AWS::Cognito::UserPoolResourceServer",
+      "Properties": {
+        "UserPoolId": {
+          "Ref": "UserPool"
+        },
+        "Identifier": "agent",
+        "Name": "Veriqta agent API",
+        "Scopes": [
+          {
+            "ScopeName": "chat",
+            "ScopeDescription": "Invoke read-only Veriqta agent"
+          }
+        ]
+      }
+    },
+    "WebClient": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "DependsOn": "Scopes",
+      "Properties": {
+        "UserPoolId": {
+          "Ref": "UserPool"
+        },
+        "GenerateSecret": false,
+        "AllowedOAuthFlowsUserPoolClient": true,
+        "AllowedOAuthFlows": [
+          "code"
+        ],
+        "AllowedOAuthScopes": [
+          "openid",
+          "agent/chat"
+        ],
+        "SupportedIdentityProviders": [
+          "COGNITO"
+        ],
+        "CallbackURLs": [
+          {
+            "Ref": "CallbackUrl"
+          }
+        ],
+        "LogoutURLs": [
+          {
+            "Ref": "CallbackUrl"
+          }
+        ],
+        "PreventUserExistenceErrors": "ENABLED",
+        "AccessTokenValidity": 15,
+        "IdTokenValidity": 15,
+        "RefreshTokenValidity": 1,
+        "TokenValidityUnits": {
+          "AccessToken": "minutes",
+          "IdToken": "minutes",
+          "RefreshToken": "days"
+        }
+      }
+    },
+    "Domain": {
+      "Type": "AWS::Cognito::UserPoolDomain",
+      "Properties": {
+        "Domain": {
+          "Ref": "DomainPrefix"
+        },
+        "UserPoolId": {
+          "Ref": "UserPool"
+        }
+      }
+    },
+    "HttpApi": {
+      "Type": "AWS::Serverless::HttpApi",
+      "Properties": {
+        "StageName": "$default",
+        "CorsConfiguration": {
+          "AllowOrigins": [
+            {
+              "Ref": "WebOrigin"
+            }
+          ],
+          "AllowMethods": [
+            "POST",
+            "OPTIONS"
+          ],
+          "AllowHeaders": [
+            "content-type",
+            "authorization"
+          ],
+          "MaxAge": 300
+        },
+        "DefaultRouteSettings": {
+          "ThrottlingBurstLimit": 2,
+          "ThrottlingRateLimit": 1
+        },
+        "AccessLogSettings": {
+          "DestinationArn": {
+            "Fn::GetAtt": [
+              "ApiLogs",
+              "Arn"
+            ]
+          },
+          "Format": "{\"requestId\":\"$context.requestId\",\"status\":\"$context.status\",\"responseLatency\":\"$context.responseLatency\"}"
+        },
+        "Auth": {
+          "DefaultAuthorizer": "CognitoJwt",
+          "Authorizers": {
+            "CognitoJwt": {
+              "IdentitySource": "$request.header.Authorization",
+              "JwtConfiguration": {
+                "issuer": {
+                  "Fn::Sub": "https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}"
+                },
+                "audience": [
+                  {
+                    "Ref": "WebClient"
+                  }
+                ]
+              },
+              "AuthorizationScopes": [
+                "agent/chat"
+              ]
+            }
+          }
+        },
+        "DefinitionBody": {
+          "openapi": "3.0.1",
+          "info": {
+            "title": "VeriqtaAgent",
+            "version": "1.0"
+          },
+          "paths": {}
+        }
+      }
+    },
+    "AgentFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Sub": "${AWS::StackName}-agent"
+        },
+        "Runtime": "python3.12",
+        "Architectures": [
+          "x86_64"
+        ],
+        "CodeUri": "../build/lambda/",
+        "Handler": "aws_agent.handler.lambda_handler",
+        "MemorySize": 512,
+        "Timeout": 28,
+        "Role": {
+          "Fn::GetAtt": [
+            "Role",
+            "Arn"
+          ]
+        },
+        "Environment": {
+          "Variables": {
+            "MODEL_ID": {
+              "Ref": "ModelId"
+            },
+            "ALLOWED_REGIONS": {
+              "Ref": "AllowedRegions"
+            },
+            "DATA_BUCKET": {
+              "Ref": "DataBucket"
+            },
+            "TABLE_NAME": {
+              "Ref": "Sessions"
+            },
+            "LOG_GROUP_NAME": {
+              "Fn::Sub": "/aws/lambda/${AWS::StackName}-agent"
+            },
+            "SERVICE_NAME": {
+              "Ref": "AWS::StackName"
+            }
+          }
+        },
+        "Events": {
+          "Chat": {
+            "Type": "HttpApi",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "Path": "/chat",
+              "Method": "POST",
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 25000
+            }
+          }
+        }
+      }
+    },
+    "Alerts": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "Subscription": [
+          {
+            "Protocol": "email",
+            "Endpoint": {
+              "Ref": "AlertEmail"
+            }
+          }
+        ]
+      }
+    },
+    "ErrorAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "Namespace": "VeriqtaAgent",
+        "MetricName": "ErrorCount",
+        "Dimensions": [
+          {
+            "Name": "Service",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }
+        ],
+        "Statistic": "Sum",
+        "Period": 60,
+        "EvaluationPeriods": 1,
+        "Threshold": 1,
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "TreatMissingData": "notBreaching",
+        "AlarmActions": [
+          {
+            "Ref": "Alerts"
+          }
+        ]
+      }
+    },
+    "AlertTopicPolicy": {
+      "Type": "AWS::SNS::TopicPolicy",
+      "Properties": {
+        "Topics": [
+          {
+            "Ref": "Alerts"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudwatch.amazonaws.com"
+              },
+              "Action": "sns:Publish",
+              "Resource": {
+                "Ref": "Alerts"
+              },
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceAccount": {
+                    "Ref": "AWS::AccountId"
+                  }
+                },
+                "ArnEquals": {
+                  "aws:SourceArn": {
+                    "Fn::GetAtt": [
+                      "ErrorAlarm",
+                      "Arn"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ApiBase": {
+      "Value": {
+        "Fn::Sub": "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+      }
+    },
+    "ClientId": {
+      "Value": {
+        "Ref": "WebClient"
+      }
+    },
+    "UserPoolId": {
+      "Value": {
+        "Ref": "UserPool"
+      }
+    },
+    "LoginDomain": {
+      "Value": {
+        "Fn::Sub": "https://${DomainPrefix}.auth.${AWS::Region}.amazoncognito.com"
+      }
+    },
+    "CallbackUrl": {
+      "Value": {
+        "Ref": "CallbackUrl"
+      }
+    },
+    "FunctionName": {
+      "Value": {
+        "Ref": "AgentFunction"
+      }
+    },
+    "DataBucket": {
+      "Value": {
+        "Ref": "DataBucket"
+      }
+    },
+    "SessionTable": {
+      "Value": {
+        "Ref": "Sessions"
+      }
+    },
+    "AlertTopic": {
+      "Value": {
+        "Ref": "Alerts"
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+.venv/
+build/
+__pycache__/
+*.pyc
+.env
+.env.*
+!**/.env.example
+**/memory*.json
+code/web/config.js
+*.log

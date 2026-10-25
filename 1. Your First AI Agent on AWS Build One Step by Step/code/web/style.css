@@ -1,0 +1,9 @@
+body {font:16px/1.5 system-ui,sans-serif;background:#eef3f7;color:#16324a;margin:0}
+main {max-width:800px;margin:30px auto;background:white;border-radius:12px;padding:28px}
+button {background:#154e6d;color:white;border:0;border-radius:6px;padding:10px 16px;cursor:pointer}
+button:disabled {opacity:.5;cursor:wait}
+textarea {display:block;width:100%;min-height:80px;box-sizing:border-box;margin:8px 0 14px;padding:12px}
+#chat {min-height:220px;max-height:480px;overflow:auto;border:1px solid #ccd9e1;padding:16px;margin:20px 0}
+#chat p {white-space:pre-wrap;overflow-wrap:anywhere;border-bottom:1px solid #eee;padding-bottom:10px}
+#status {color:#476577} label {font-weight:bold}
+@media(max-width:850px){main{margin:0;border-radius:0;padding:20px}}

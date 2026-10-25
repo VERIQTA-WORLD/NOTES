@@ -1,0 +1,23 @@
+{
+  "version": "2.0",
+  "routeKey": "POST /chat",
+  "rawPath": "/chat",
+  "requestContext": {
+    "http": {
+      "method": "POST"
+    },
+    "authorizer": {
+      "jwt": {
+        "claims": {
+          "sub": "admin-only-synthetic-test",
+          "scope": "agent/chat"
+        },
+        "scopes": [
+          "agent/chat"
+        ]
+      }
+    }
+  },
+  "isBase64Encoded": false,
+  "body": "{\"message\": \"Explain what an AI agent is in two sentences.\", \"session_id\": \"admin-console-test-session-123\"}"
+}
