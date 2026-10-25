@@ -1,0 +1,686 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Veriqta: two-AZ public/private VPC with optional connectivity exercises",
+  "Parameters": {
+    "AmiId": {
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+      "Default": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+    },
+    "InstanceType": {
+      "Type": "String",
+      "AllowedValues": [
+        "t3.micro",
+        "t3.small",
+        "t3a.micro",
+        "t3a.small"
+      ],
+      "Default": "t3.micro"
+    },
+    "CreateTestNodes": {
+      "Type": "String",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Default": "false"
+    },
+    "EnablePrivateSsm": {
+      "Type": "String",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Default": "false"
+    },
+    "EnableNatGateway": {
+      "Type": "String",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Default": "false"
+    }
+  },
+  "Conditions": {
+    "CreateNodes": {
+      "Fn::Equals": [
+        {
+          "Ref": "CreateTestNodes"
+        },
+        "true"
+      ]
+    },
+    "CreateEndpoints": {
+      "Fn::Equals": [
+        {
+          "Ref": "EnablePrivateSsm"
+        },
+        "true"
+      ]
+    },
+    "CreateNat": {
+      "Fn::Equals": [
+        {
+          "Ref": "EnableNatGateway"
+        },
+        "true"
+      ]
+    }
+  },
+  "Resources": {
+    "Vpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsSupport": true,
+        "EnableDnsHostnames": true,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      }
+    },
+    "Gateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      }
+    },
+    "Attachment": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "InternetGatewayId": {
+          "Ref": "Gateway"
+        }
+      }
+    },
+    "PublicRoutes": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      }
+    },
+    "InternetRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRoutes"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "Gateway"
+        }
+      },
+      "DependsOn": "Attachment"
+    },
+    "Public1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "CidrBlock": "10.0.1.0/24",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      }
+    },
+    "PublicAssociation1": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "Public1"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRoutes"
+        }
+      }
+    },
+    "Public2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "CidrBlock": "10.0.2.0/24",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      }
+    },
+    "PublicAssociation2": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "Public2"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRoutes"
+        }
+      }
+    },
+    "PrivateRoutes": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      }
+    },
+    "Private1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "CidrBlock": "10.0.3.0/24",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": false,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      }
+    },
+    "PrivateAssociation1": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "Private1"
+        },
+        "RouteTableId": {
+          "Ref": "PrivateRoutes"
+        }
+      }
+    },
+    "Private2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "CidrBlock": "10.0.4.0/24",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": false,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      }
+    },
+    "PrivateAssociation2": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "Private2"
+        },
+        "RouteTableId": {
+          "Ref": "PrivateRoutes"
+        }
+      }
+    },
+    "InstanceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
+          }
+        ]
+      },
+      "Condition": "CreateNodes"
+    },
+    "InstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "InstanceRole"
+          }
+        ]
+      },
+      "Condition": "CreateNodes"
+    },
+    "NodeSecurity": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Veriqta test nodes; no inbound ports",
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      }
+    },
+    "EndpointSecurity": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "HTTPS from test nodes only",
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 443,
+            "ToPort": 443,
+            "SourceSecurityGroupId": {
+              "Ref": "NodeSecurity"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      },
+      "Condition": "CreateEndpoints"
+    },
+    "S3Endpoint": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "ServiceName": {
+          "Fn::Sub": "com.amazonaws.${AWS::Region}.s3"
+        },
+        "VpcEndpointType": "Gateway",
+        "RouteTableIds": [
+          {
+            "Ref": "PrivateRoutes"
+          }
+        ]
+      },
+      "Condition": "CreateEndpoints"
+    },
+    "NatAddress": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc",
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      },
+      "Condition": "CreateNat"
+    },
+    "NatGateway": {
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "NatAddress",
+            "AllocationId"
+          ]
+        },
+        "SubnetId": {
+          "Ref": "Public1"
+        },
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      },
+      "Condition": "CreateNat",
+      "DependsOn": "Attachment"
+    },
+    "NatRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRoutes"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Ref": "NatGateway"
+        }
+      },
+      "Condition": "CreateNat"
+    },
+    "EndpointSsm": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "ServiceName": {
+          "Fn::Sub": "com.amazonaws.${AWS::Region}.ssm"
+        },
+        "VpcEndpointType": "Interface",
+        "PrivateDnsEnabled": true,
+        "SubnetIds": [
+          {
+            "Ref": "Private1"
+          },
+          {
+            "Ref": "Private2"
+          }
+        ],
+        "SecurityGroupIds": [
+          {
+            "Ref": "EndpointSecurity"
+          }
+        ]
+      },
+      "Condition": "CreateEndpoints"
+    },
+    "EndpointSsmmessages": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "ServiceName": {
+          "Fn::Sub": "com.amazonaws.${AWS::Region}.ssmmessages"
+        },
+        "VpcEndpointType": "Interface",
+        "PrivateDnsEnabled": true,
+        "SubnetIds": [
+          {
+            "Ref": "Private1"
+          },
+          {
+            "Ref": "Private2"
+          }
+        ],
+        "SecurityGroupIds": [
+          {
+            "Ref": "EndpointSecurity"
+          }
+        ]
+      },
+      "Condition": "CreateEndpoints"
+    },
+    "PublicTest": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Ref": "AmiId"
+        },
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "IamInstanceProfile": {
+          "Ref": "InstanceProfile"
+        },
+        "SubnetId": {
+          "Ref": "Public1"
+        },
+        "SecurityGroupIds": [
+          {
+            "Ref": "NodeSecurity"
+          }
+        ],
+        "MetadataOptions": {
+          "HttpTokens": "required"
+        },
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "VolumeSize": 8,
+              "VolumeType": "gp3",
+              "Encrypted": true,
+              "DeleteOnTermination": true
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      },
+      "DependsOn": "InternetRoute",
+      "Condition": "CreateNodes"
+    },
+    "PrivateTest": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Ref": "AmiId"
+        },
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "IamInstanceProfile": {
+          "Ref": "InstanceProfile"
+        },
+        "SubnetId": {
+          "Ref": "Private1"
+        },
+        "SecurityGroupIds": [
+          {
+            "Ref": "NodeSecurity"
+          }
+        ],
+        "MetadataOptions": {
+          "HttpTokens": "required"
+        },
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "VolumeSize": 8,
+              "VolumeType": "gp3",
+              "Encrypted": true,
+              "DeleteOnTermination": true
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "Veriqta"
+          },
+          {
+            "Key": "Environment",
+            "Value": "Practice"
+          }
+        ]
+      },
+      "Condition": "CreateNodes"
+    }
+  },
+  "Outputs": {
+    "VpcId": {
+      "Value": {
+        "Ref": "Vpc"
+      }
+    },
+    "PublicSubnet1": {
+      "Value": {
+        "Ref": "Public1"
+      }
+    },
+    "PublicSubnet2": {
+      "Value": {
+        "Ref": "Public2"
+      }
+    },
+    "PrivateSubnet1": {
+      "Value": {
+        "Ref": "Private1"
+      }
+    },
+    "PrivateSubnet2": {
+      "Value": {
+        "Ref": "Private2"
+      }
+    },
+    "PublicRouteTable": {
+      "Value": {
+        "Ref": "PublicRoutes"
+      }
+    },
+    "PrivateRouteTable": {
+      "Value": {
+        "Ref": "PrivateRoutes"
+      }
+    },
+    "PublicTestId": {
+      "Value": {
+        "Fn::If": [
+          "CreateNodes",
+          {
+            "Ref": "PublicTest"
+          },
+          "not-created"
+        ]
+      }
+    },
+    "PrivateTestId": {
+      "Value": {
+        "Fn::If": [
+          "CreateNodes",
+          {
+            "Ref": "PrivateTest"
+          },
+          "not-created"
+        ]
+      }
+    }
+  }
+}

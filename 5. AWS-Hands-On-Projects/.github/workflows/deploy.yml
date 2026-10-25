@@ -1,0 +1,56 @@
+name: Veriqta website deployment
+on:
+  push:
+    branches: [main]
+    paths: ['site/**', 'scripts/check_site.py', '.github/workflows/deploy.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: veriqta-website
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      SITE_BUCKET: ${{ vars.SITE_BUCKET }}
+      DISTRIBUTION_ID: ${{ vars.DISTRIBUTION_ID }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Check website and required configuration
+        run: |
+          set -euo pipefail
+          python3 scripts/check_site.py
+          aws --version
+          test -n "$AWS_REGION"
+          test -n "$SITE_BUCKET"
+          test -n "$DISTRIBUTION_ID"
+          test -n "$SITE_URL"
+      - name: Obtain temporary AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: veriqta-website
+      - name: Upload only the website directory
+        run: |
+          set -euo pipefail
+          aws s3 sync site/ "s3://$SITE_BUCKET/" --delete --cache-control 'public,max-age=60'
+      - name: Refresh the small website cache
+        run: |
+          set -euo pipefail
+          INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths '/' '/index.html' '/about.html' '/style.css' --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$INVALIDATION_ID"
+      - name: Verify delivered pages
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 20 "$SITE_URL/" | grep -F 'Welcome to Veriqta on AWS'
+          curl --fail --silent --show-error --max-time 20 "$SITE_URL/about.html" | grep -F 'A private origin, a public website'
