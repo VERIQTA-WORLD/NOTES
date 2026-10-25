@@ -1,0 +1,14 @@
+- name: Manage a local lab file without root
+  hosts: lab
+  gather_facts: false
+  tasks:
+    - name: Create managed directory
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/generated"
+        state: directory
+        mode: '0750'
+    - name: Set desired configuration
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/generated/app.conf"
+        content: "environment=lab\nlog_level=info\n"
+        mode: '0640'

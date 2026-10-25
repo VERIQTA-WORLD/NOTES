@@ -1,0 +1,27 @@
+name: test-and-build
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile and test
+        run: |
+          python -m compileall -q app.py tests
+          python -m unittest discover -s tests -v
+      - name: Build image
+        run: docker build -t devops-notes:${{ github.sha }} .
+      - name: Smoke-test container
+        run: |
+          docker run -d --name smoke -p 127.0.0.1:8000:8000 devops-notes:${{ github.sha }}
+          python smoke.py
+      - name: Collect logs and clean up
+        if: always()
+        run: |
+          docker logs smoke || true
+          docker rm -f smoke || true

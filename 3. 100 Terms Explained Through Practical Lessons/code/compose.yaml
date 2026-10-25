@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    image: devops-notes:1.0
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      APP_MESSAGE: Hello from Compose
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+volumes:
+  prometheus-data:

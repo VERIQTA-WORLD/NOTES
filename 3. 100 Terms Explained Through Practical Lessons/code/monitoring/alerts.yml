@@ -1,0 +1,11 @@
+groups:
+  - name: lab
+    rules:
+      - alert: LabAppDown
+        expr: up{job="lab-app"} == 0
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: Lab application scrape has failed for 30 seconds
+          description: Inspect Compose app state and logs; follow notes chapter 20.

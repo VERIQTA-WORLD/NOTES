@@ -1,0 +1,10 @@
+__pycache__/
+.venv/
+.env
+*.log
+*.zip
+*.tfstate*
+.terraform/
+*.tfplan
+scratch/
+ansible/generated/

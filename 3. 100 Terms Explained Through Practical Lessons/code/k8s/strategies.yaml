@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notes-blue
+  namespace: devops-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: notes-preview, track: blue}
+  template:
+    metadata:
+      labels: {app: notes-preview, track: blue}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: app
+          image: devops-notes:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          resources:
+            requests: {cpu: 20m, memory: 24Mi}
+            limits: {cpu: 150m, memory: 96Mi}
+          readinessProbe:
+            httpGet: {path: /ready, port: 8000}
+            periodSeconds: 3
+          livenessProbe:
+            httpGet: {path: /health, port: 8000}
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notes-green
+  namespace: devops-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: notes-preview, track: green}
+  template:
+    metadata:
+      labels: {app: notes-preview, track: green}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: app
+          image: devops-notes:2.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          resources:
+            requests: {cpu: 20m, memory: 24Mi}
+            limits: {cpu: 150m, memory: 96Mi}
+          readinessProbe:
+            httpGet: {path: /ready, port: 8000}
+            periodSeconds: 3
+          livenessProbe:
+            httpGet: {path: /health, port: 8000}
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notes-preview
+  namespace: devops-lab
+spec:
+  selector: {app: notes-preview, track: blue}
+  ports:
+    - port: 80
+      targetPort: 8000
