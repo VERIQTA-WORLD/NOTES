@@ -67,7 +67,7 @@ Browser -> API Gateway JWT authorizer -> Lambda agent loop
                                         `-> redacted operational logs / metrics
 ```
 
-The model does not call AWS by itself. Lambda or local Python executes Boto3 using its own identity. API Gateway is an API front door, not a web page host. The browser client run locally for the lab; hosting a public production frontend is a separate deployment decision.
+The model does not call AWS by itself. Lambda or local Python executes Boto3 using its own identity. API Gateway is an API front door, not a web page host. The browser client runs locally for the lab; hosting a public production frontend is a separate deployment decision.
 
 ### Services and responsibility
 
@@ -114,7 +114,7 @@ A new account or advertised Free Tier does not guarantee this project is free. M
 
 A budget notification is delayed cost monitoring, **not an immediate hard spending cap**. The stack's API throttles and the application's request/token/tool limits reduce exposure but are not account-wide financial guarantees. See [AWS Budgets](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html).
 
-### Billing alerts and SNS: complete the missing connection
+### Connect billing alerts to SNS
 
 To receive estimated-charge notifications, connect a CloudWatch billing alarm to a confirmed SNS subscription:
 
@@ -269,9 +269,8 @@ The handbook chooses a short synchronous request budget and a 256-token output c
 Organize the application into separate modules for configuration, AWS tools, orchestration, memory, and request handling:
 
 ```text
-veriqta-aws-agent/
-  AWS-AI-Agent-Complete-Notes.md
-  START-HERE.md
+Veriqta-AWS-AI-Agent/
+  AWS-AI-Agent-Handbook.md
   code/
     aws_agent/
       config.py       settings from the process environment
@@ -1149,7 +1148,22 @@ Use the official documentation to confirm model availability, supported APIs, se
 
 ## Complete code and configuration
 
-Create each file at the indicated path relative to the project root. Replace account-specific configuration placeholders before running live AWS requests.
+Paths below are relative to the project root. The same files are included in the project for the follow-along exercises. Replace account-specific configuration placeholders before making live AWS requests.
+
+### File: `.gitignore`
+
+```text
+.venv/
+build/
+__pycache__/
+*.pyc
+.env
+.env.*
+!**/.env.example
+**/memory*.json
+code/web/config.js
+*.log
+```
 
 ### File: `code/.env.example`
 
@@ -2673,6 +2687,63 @@ textarea {display:block;width:100%;min-height:80px;box-sizing:border-box;margin:
 }
 ```
 
+### File: `notes/lambda-test-event.json`
+
+```json
+{
+  "version": "2.0",
+  "routeKey": "POST /chat",
+  "rawPath": "/chat",
+  "requestContext": {
+    "http": {
+      "method": "POST"
+    },
+    "authorizer": {
+      "jwt": {
+        "claims": {
+          "sub": "admin-only-synthetic-test",
+          "scope": "agent/chat"
+        },
+        "scopes": [
+          "agent/chat"
+        ]
+      }
+    }
+  },
+  "isBase64Encoded": false,
+  "body": "{\"message\": \"Explain what an AI agent is in two sentences.\", \"session_id\": \"admin-console-test-session-123\"}"
+}
+```
+
+### File: `notes/live-verification.md`
+
+```markdown
+# Live verification worksheet
+
+Date / tester / account ID / region / stack:
+Model ID or inference profile / exact allowed ARNs / resolved SDK version:
+
+For every check record: command or prompt; expected behavior; actual tool/arguments; observed result; latency/usage; evidence/request ID; pass/fail; cleanup.
+
+1. STS identifies intended non-root identity.
+2. First Converse request succeeds with verified model and usage.
+3. Independent EC2/S3/CloudWatch reads match account/region console.
+4. Natural-language requests choose correct tools; no fabricated facts.
+5. Empty data, truncation and denied reads are represented honestly.
+6. Disallowed write/region/object-prefix requests are rejected without mutation.
+7. CloudFormation succeeds; runtime role has no infrastructure-write tools/permissions.
+8. Synthetic Lambda test succeeds (privileged test only, not JWT evidence).
+9. Signed-out API denied; signed-in browser flow succeeds with required scope.
+10. Invalid body rejected; CORS preflight configured for exact origin.
+11. Same session remembers; new session/other user does not share history.
+12. Concurrent session write returns conflict rather than silent overwrite.
+13. Controlled application failure creates logs/metric/alarm/confirmed SNS notification.
+14. Working model/config restored; normal operation recovered.
+15. Training objects/stack/artifact bucket cleaned up and residual resources reviewed.
+
+Never attach bearer tokens, passwords, secret keys or sensitive prompts as evidence. A result not run must be marked NOT RUN rather than PASS.
+```
+
 ### File: `scripts/configure_web.py`
 
 ```python
@@ -2706,47 +2777,4 @@ target.mkdir(parents=True)
 subprocess.run([sys.executable,"-m","pip","install","-r",str(root/"code/requirements.txt"),"--target",str(target)],check=True)
 shutil.copytree(root/"code/aws_agent",target/"aws_agent",ignore=shutil.ignore_patterns("__pycache__","*.pyc"))
 print("Lambda package directory:",target)
-```
-
-### File: `.gitignore`
-
-```text
-.venv/
-build/
-__pycache__/
-*.pyc
-.env
-.env.*
-!**/.env.example
-**/memory*.json
-code/web/config.js
-*.log
-```
-
-### File: `notes/lambda-test-event.json`
-
-```json
-{
-  "version": "2.0",
-  "routeKey": "POST /chat",
-  "rawPath": "/chat",
-  "requestContext": {
-    "http": {
-      "method": "POST"
-    },
-    "authorizer": {
-      "jwt": {
-        "claims": {
-          "sub": "admin-only-synthetic-test",
-          "scope": "agent/chat"
-        },
-        "scopes": [
-          "agent/chat"
-        ]
-      }
-    }
-  },
-  "isBase64Encoded": false,
-  "body": "{\"message\": \"Explain what an AI agent is in two sentences.\", \"session_id\": \"admin-console-test-session-123\"}"
-}
 ```
