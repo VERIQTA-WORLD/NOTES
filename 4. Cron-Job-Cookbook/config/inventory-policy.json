@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "InventoryReads",
+      "Effect": "Allow",
+      "Action": ["ec2:DescribeInstances", "s3:ListAllMyBuckets", "rds:DescribeDBInstances", "lambda:ListFunctions"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CostReportRead",
+      "Effect": "Allow",
+      "Action": "ce:GetCostAndUsage",
+      "Resource": "*"
+    }
+  ]
+}

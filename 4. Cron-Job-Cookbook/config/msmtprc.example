@@ -1,0 +1,14 @@
+defaults
+auth on
+tls on
+tls_starttls on
+tls_trust_file /etc/ssl/certs/ca-certificates.crt
+
+account veriqta
+host YOUR_SMTP_HOST
+port 587
+from YOUR_VERIFIED_SENDER
+user YOUR_SMTP_USERNAME
+passwordeval "cat /ABSOLUTE/PATH/TO/PRIVATE/mail-password"
+
+account default : veriqta

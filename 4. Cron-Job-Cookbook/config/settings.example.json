@@ -1,0 +1,15 @@
+{
+  "app_name": "veriqta",
+  "environment": "practice",
+  "health_url": "http://127.0.0.1:8050/health",
+  "disk_threshold_percent": 80,
+  "http_timeout_seconds": 3,
+  "retry_attempts": 3,
+  "retry_base_seconds": 1,
+  "retention_days": 30,
+  "retain_at_least": 2,
+  "aws_region": "us-east-1",
+  "alert_recipient": "",
+  "alert_sender": "",
+  "sendmail_path": "/usr/sbin/sendmail"
+}

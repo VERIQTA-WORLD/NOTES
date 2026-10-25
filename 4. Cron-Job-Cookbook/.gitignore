@@ -1,0 +1,8 @@
+runtime/
+config/settings.json
+__pycache__/
+*.pyc
+.venv/
+.env
+.pgpass
+.DS_Store

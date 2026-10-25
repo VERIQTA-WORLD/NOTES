@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: veriqta-backup-source
+  namespace: veriqta-cron
+data:
+  app.conf: |
+    application=veriqta
+    environment=practice
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: veriqta-backups
+  namespace: veriqta-cron
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: veriqta-persistent-backup
+  namespace: veriqta-cron
+spec:
+  schedule: "0 2 * * *"
+  timeZone: "Etc/UTC"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+          containers:
+            - name: backup
+              image: alpine:3.22
+              env:
+                - name: POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  archive="/backups/veriqta-config-${POD_UID}.tar.gz"
+                  tar -czf "${archive}.partial" -C /source app.conf
+                  mv "${archive}.partial" "$archive"
+                  tar -xzf "$archive" -C /work
+                  cmp /source/app.conf /work/app.conf
+                  printf 'Veriqta persistent archive verified: %s\n' "$archive"
+              resources:
+                requests: {cpu: 20m, memory: 16Mi}
+                limits: {cpu: 100m, memory: 64Mi}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: {drop: [ALL]}
+              volumeMounts:
+                - {name: source, mountPath: /source, readOnly: true}
+                - {name: backups, mountPath: /backups}
+                - {name: work, mountPath: /work}
+          volumes:
+            - name: source
+              configMap:
+                name: veriqta-backup-source
+            - name: backups
+              persistentVolumeClaim:
+                claimName: veriqta-backups
+            - name: work
+              emptyDir: {}
