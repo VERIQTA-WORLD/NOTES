@@ -1,0 +1,19 @@
+groups:
+  - name: veriqta-slo
+    rules:
+      - record: service:error_ratio:5m
+        expr: (sum(rate(http_requests_total{code=~"5.."}[5m])) or vector(0)) / sum(rate(http_requests_total[5m]))
+      - record: service:error_ratio:1h
+        expr: (sum(rate(http_requests_total{code=~"5.."}[1h])) or vector(0)) / sum(rate(http_requests_total[1h]))
+      - alert: VeriqtaFastErrorBudgetBurn
+        expr: service:error_ratio:5m > (14.4 * 0.001) and service:error_ratio:1h > (14.4 * 0.001) and sum(increase(http_requests_total[5m])) >= 100
+        for: 1m
+        labels: {severity: page, service: api}
+        annotations:
+          summary: API is consuming the availability error budget rapidly
+          runbook: See Project 06 in the Veriqta handbook
+      - alert: VeriqtaTelemetryMissing
+        expr: absent(up{job="api"}) or max(up{job="api"}) == 0
+        for: 2m
+        labels: {severity: warning, service: telemetry}
+        annotations: {summary: No reachable API scrape targets}

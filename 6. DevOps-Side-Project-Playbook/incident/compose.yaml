@@ -1,0 +1,40 @@
+name: veriqta-incident
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: veriqta
+      POSTGRES_USER: veriqta
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes: ["../recovery/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U veriqta -d veriqta"]
+      interval: 3s
+      retries: 30
+  api:
+    build: {context: .., dockerfile: app/Dockerfile}
+    image: veriqta-api:lab
+    environment:
+      VERSION: "${INCIDENT_VERSION:-baseline}"
+      DB_HOST: db
+      DB_HOLD: "${DB_HOLD:-0.01}"
+      POOL_SIZE: "${POOL_SIZE:-8}"
+      POOL_TIMEOUT: "0.25"
+      DB_RETRIES: "${DB_RETRIES:-0}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://collector:4317
+      OTEL_EXPORTER_OTLP_INSECURE: "true"
+    entrypoint: [sh, -c, 'export DB_PASSWORD="$$(cat /run/secrets/db_password)"; exec python -u api.py']
+    secrets: [db_password]
+    ports: ["127.0.0.1:8086:8080"]
+    depends_on:
+      db: {condition: service_healthy}
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.130.1
+    command: [--config=/etc/otelcol/config.yaml]
+    user: "0:0"
+    volumes:
+      - ./otel.yaml:/etc/otelcol/config.yaml:ro
+      - ../artifacts/incident/traces:/data
+secrets:
+  db_password: {file: ../.private/db-password}

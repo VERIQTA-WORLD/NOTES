@@ -1,0 +1,444 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Namespace",
+      "metadata": {
+        "name": "veriqta-recovery"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "db-data",
+        "namespace": "veriqta-recovery"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "restore-data",
+        "namespace": "veriqta-recovery"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "backups",
+        "namespace": "veriqta-recovery"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "db",
+        "namespace": "veriqta-recovery"
+      },
+      "spec": {
+        "replicas": 1,
+        "strategy": {
+          "type": "Recreate"
+        },
+        "selector": {
+          "matchLabels": {
+            "app": "db"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "db"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "db",
+                "image": "postgres:17-bookworm",
+                "env": [
+                  {
+                    "name": "POSTGRES_DB",
+                    "value": "veriqta"
+                  },
+                  {
+                    "name": "POSTGRES_USER",
+                    "value": "veriqta"
+                  },
+                  {
+                    "name": "POSTGRES_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "database",
+                        "key": "password"
+                      }
+                    }
+                  }
+                ],
+                "volumeMounts": [
+                  {
+                    "name": "data",
+                    "mountPath": "/var/lib/postgresql/data"
+                  }
+                ],
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "pg_isready",
+                      "-U",
+                      "veriqta"
+                    ]
+                  },
+                  "periodSeconds": 5
+                }
+              }
+            ],
+            "volumes": [
+              {
+                "name": "data",
+                "persistentVolumeClaim": {
+                  "claimName": "db-data"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "db",
+        "namespace": "veriqta-recovery"
+      },
+      "spec": {
+        "selector": {
+          "app": "db"
+        },
+        "ports": [
+          {
+            "port": 5432
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "restored",
+        "namespace": "veriqta-recovery"
+      },
+      "spec": {
+        "replicas": 1,
+        "strategy": {
+          "type": "Recreate"
+        },
+        "selector": {
+          "matchLabels": {
+            "app": "restored"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "restored"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "db",
+                "image": "postgres:17-bookworm",
+                "env": [
+                  {
+                    "name": "POSTGRES_DB",
+                    "value": "veriqta"
+                  },
+                  {
+                    "name": "POSTGRES_USER",
+                    "value": "veriqta"
+                  },
+                  {
+                    "name": "POSTGRES_PASSWORD",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "database",
+                        "key": "password"
+                      }
+                    }
+                  }
+                ],
+                "volumeMounts": [
+                  {
+                    "name": "data",
+                    "mountPath": "/var/lib/postgresql/data"
+                  }
+                ],
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "pg_isready",
+                      "-U",
+                      "veriqta"
+                    ]
+                  },
+                  "periodSeconds": 5
+                }
+              }
+            ],
+            "volumes": [
+              {
+                "name": "data",
+                "persistentVolumeClaim": {
+                  "claimName": "restore-data"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "restored",
+        "namespace": "veriqta-recovery"
+      },
+      "spec": {
+        "selector": {
+          "app": "restored"
+        },
+        "ports": [
+          {
+            "port": 5432
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "CronJob",
+      "metadata": {
+        "name": "database-backup",
+        "namespace": "veriqta-recovery"
+      },
+      "spec": {
+        "schedule": "17 2 * * *",
+        "timeZone": "Etc/UTC",
+        "concurrencyPolicy": "Forbid",
+        "successfulJobsHistoryLimit": 2,
+        "failedJobsHistoryLimit": 2,
+        "jobTemplate": {
+          "spec": {
+            "backoffLimit": 1,
+            "activeDeadlineSeconds": 300,
+            "template": {
+              "spec": {
+                "automountServiceAccountToken": false,
+                "restartPolicy": "Never",
+                "containers": [
+                  {
+                    "name": "backup",
+                    "image": "veriqta-backup:lab",
+                    "imagePullPolicy": "IfNotPresent",
+                    "env": [
+                      {
+                        "name": "PGHOST",
+                        "value": "db"
+                      },
+                      {
+                        "name": "PGDATABASE",
+                        "value": "veriqta"
+                      },
+                      {
+                        "name": "PGUSER",
+                        "value": "veriqta"
+                      },
+                      {
+                        "name": "PGPASSWORD",
+                        "valueFrom": {
+                          "secretKeyRef": {
+                            "name": "database",
+                            "key": "password"
+                          }
+                        }
+                      }
+                    ],
+                    "volumeMounts": [
+                      {
+                        "name": "backups",
+                        "mountPath": "/backups"
+                      },
+                      {
+                        "name": "encryption",
+                        "mountPath": "/encryption",
+                        "readOnly": true
+                      },
+                      {
+                        "name": "temporary",
+                        "mountPath": "/tmp"
+                      }
+                    ],
+                    "resources": {
+                      "requests": {
+                        "cpu": "100m",
+                        "memory": "128Mi"
+                      },
+                      "limits": {
+                        "cpu": "1",
+                        "memory": "384Mi"
+                      }
+                    }
+                  }
+                ],
+                "volumes": [
+                  {
+                    "name": "backups",
+                    "persistentVolumeClaim": {
+                      "claimName": "backups"
+                    }
+                  },
+                  {
+                    "name": "encryption",
+                    "secret": {
+                      "secretName": "backup-encryption",
+                      "defaultMode": 256
+                    }
+                  },
+                  {
+                    "name": "temporary",
+                    "emptyDir": {
+                      "medium": "Memory",
+                      "sizeLimit": "256Mi"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "name": "restore-tool",
+        "namespace": "veriqta-recovery"
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "restartPolicy": "Never",
+        "containers": [
+          {
+            "name": "tools",
+            "image": "veriqta-backup:lab",
+            "imagePullPolicy": "IfNotPresent",
+            "command": [
+              "sleep",
+              "infinity"
+            ],
+            "env": [
+              {
+                "name": "PGHOST",
+                "value": "restored"
+              },
+              {
+                "name": "PGDATABASE",
+                "value": "veriqta"
+              },
+              {
+                "name": "PGUSER",
+                "value": "veriqta"
+              },
+              {
+                "name": "PGPASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "database",
+                    "key": "password"
+                  }
+                }
+              }
+            ],
+            "volumeMounts": [
+              {
+                "name": "backups",
+                "mountPath": "/backups"
+              },
+              {
+                "name": "encryption",
+                "mountPath": "/encryption",
+                "readOnly": true
+              },
+              {
+                "name": "temporary",
+                "mountPath": "/tmp"
+              }
+            ]
+          }
+        ],
+        "volumes": [
+          {
+            "name": "backups",
+            "persistentVolumeClaim": {
+              "claimName": "backups"
+            }
+          },
+          {
+            "name": "encryption",
+            "secret": {
+              "secretName": "backup-encryption",
+              "defaultMode": 256
+            }
+          },
+          {
+            "name": "temporary",
+            "emptyDir": {
+              "medium": "Memory",
+              "sizeLimit": "256Mi"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

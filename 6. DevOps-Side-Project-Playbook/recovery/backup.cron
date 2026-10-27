@@ -1,0 +1,3 @@
+# Host-side Linux cron example. Replace /opt/veriqta-playbook with the actual absolute path.
+# The same OS account must own the passphrase, Docker access, and optional AWS identity.
+17 2 * * * cd /opt/veriqta-playbook && /usr/bin/flock -n .private/backup.lock .venv/bin/python tools/recovery.py backup --passphrase-file .private/backup-passphrase >> .private/backup.log 2>&1

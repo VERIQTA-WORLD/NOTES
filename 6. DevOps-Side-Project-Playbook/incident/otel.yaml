@@ -1,0 +1,14 @@
+receivers:
+  otlp:
+    protocols:
+      grpc: {endpoint: '0.0.0.0:4317'}
+processors:
+  batch: {timeout: 1s}
+exporters:
+  file: {path: /data/traces.jsonl}
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [file]

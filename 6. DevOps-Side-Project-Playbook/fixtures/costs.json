@@ -1,0 +1,506 @@
+[
+  {
+    "date": "2026-01-01",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "60.0"
+  },
+  {
+    "date": "2026-01-02",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "60.0"
+  },
+  {
+    "date": "2026-01-03",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "60.0"
+  },
+  {
+    "date": "2026-01-04",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "60.0"
+  },
+  {
+    "date": "2026-01-05",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "60.0"
+  },
+  {
+    "date": "2026-01-06",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "60.0"
+  },
+  {
+    "date": "2026-01-07",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "60.0"
+  },
+  {
+    "date": "2026-01-08",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "90.71428571428571"
+  },
+  {
+    "date": "2026-01-09",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "90.71428571428571"
+  },
+  {
+    "date": "2026-01-10",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "90.71428571428571"
+  },
+  {
+    "date": "2026-01-11",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "90.71428571428571"
+  },
+  {
+    "date": "2026-01-12",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "90.71428571428571"
+  },
+  {
+    "date": "2026-01-13",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "90.71428571428571"
+  },
+  {
+    "date": "2026-01-14",
+    "service": "EC2",
+    "owner": "veriqta-platform",
+    "usd": "90.71428571428571"
+  },
+  {
+    "date": "2026-01-01",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "40.0"
+  },
+  {
+    "date": "2026-01-02",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "40.0"
+  },
+  {
+    "date": "2026-01-03",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "40.0"
+  },
+  {
+    "date": "2026-01-04",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "40.0"
+  },
+  {
+    "date": "2026-01-05",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "40.0"
+  },
+  {
+    "date": "2026-01-06",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "40.0"
+  },
+  {
+    "date": "2026-01-07",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "40.0"
+  },
+  {
+    "date": "2026-01-08",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "50.0"
+  },
+  {
+    "date": "2026-01-09",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "50.0"
+  },
+  {
+    "date": "2026-01-10",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "50.0"
+  },
+  {
+    "date": "2026-01-11",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "50.0"
+  },
+  {
+    "date": "2026-01-12",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "50.0"
+  },
+  {
+    "date": "2026-01-13",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "50.0"
+  },
+  {
+    "date": "2026-01-14",
+    "service": "RDS",
+    "owner": "veriqta-data",
+    "usd": "50.0"
+  },
+  {
+    "date": "2026-01-01",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-02",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-03",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-04",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-05",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-06",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-07",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-08",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "28.571428571428573"
+  },
+  {
+    "date": "2026-01-09",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "28.571428571428573"
+  },
+  {
+    "date": "2026-01-10",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "28.571428571428573"
+  },
+  {
+    "date": "2026-01-11",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "28.571428571428573"
+  },
+  {
+    "date": "2026-01-12",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "28.571428571428573"
+  },
+  {
+    "date": "2026-01-13",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "28.571428571428573"
+  },
+  {
+    "date": "2026-01-14",
+    "service": "S3",
+    "owner": "veriqta-platform",
+    "usd": "28.571428571428573"
+  },
+  {
+    "date": "2026-01-01",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "44.285714285714285"
+  },
+  {
+    "date": "2026-01-02",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "44.285714285714285"
+  },
+  {
+    "date": "2026-01-03",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "44.285714285714285"
+  },
+  {
+    "date": "2026-01-04",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "44.285714285714285"
+  },
+  {
+    "date": "2026-01-05",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "44.285714285714285"
+  },
+  {
+    "date": "2026-01-06",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "44.285714285714285"
+  },
+  {
+    "date": "2026-01-07",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "44.285714285714285"
+  },
+  {
+    "date": "2026-01-08",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "61.42857142857143"
+  },
+  {
+    "date": "2026-01-09",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "61.42857142857143"
+  },
+  {
+    "date": "2026-01-10",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "61.42857142857143"
+  },
+  {
+    "date": "2026-01-11",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "61.42857142857143"
+  },
+  {
+    "date": "2026-01-12",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "61.42857142857143"
+  },
+  {
+    "date": "2026-01-13",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "61.42857142857143"
+  },
+  {
+    "date": "2026-01-14",
+    "service": "NAT Gateway",
+    "owner": "veriqta-data",
+    "usd": "61.42857142857143"
+  },
+  {
+    "date": "2026-01-01",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "17.142857142857142"
+  },
+  {
+    "date": "2026-01-02",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "17.142857142857142"
+  },
+  {
+    "date": "2026-01-03",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "17.142857142857142"
+  },
+  {
+    "date": "2026-01-04",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "17.142857142857142"
+  },
+  {
+    "date": "2026-01-05",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "17.142857142857142"
+  },
+  {
+    "date": "2026-01-06",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "17.142857142857142"
+  },
+  {
+    "date": "2026-01-07",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "17.142857142857142"
+  },
+  {
+    "date": "2026-01-08",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-09",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-10",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-11",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-12",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-13",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-14",
+    "service": "CloudWatch",
+    "owner": "veriqta-platform",
+    "usd": "21.428571428571427"
+  },
+  {
+    "date": "2026-01-01",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "20.0"
+  },
+  {
+    "date": "2026-01-02",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "20.0"
+  },
+  {
+    "date": "2026-01-03",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "20.0"
+  },
+  {
+    "date": "2026-01-04",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "20.0"
+  },
+  {
+    "date": "2026-01-05",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "20.0"
+  },
+  {
+    "date": "2026-01-06",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "20.0"
+  },
+  {
+    "date": "2026-01-07",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "20.0"
+  },
+  {
+    "date": "2026-01-08",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "31.857142857142858"
+  },
+  {
+    "date": "2026-01-09",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "31.857142857142858"
+  },
+  {
+    "date": "2026-01-10",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "31.857142857142858"
+  },
+  {
+    "date": "2026-01-11",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "31.857142857142858"
+  },
+  {
+    "date": "2026-01-12",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "31.857142857142858"
+  },
+  {
+    "date": "2026-01-13",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "31.857142857142858"
+  },
+  {
+    "date": "2026-01-14",
+    "service": "Other",
+    "owner": "veriqta-data",
+    "usd": "31.857142857142858"
+  }
+]

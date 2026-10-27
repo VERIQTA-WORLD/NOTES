@@ -1,0 +1,48 @@
+name: Veriqta trusted release
+on: workflow_dispatch
+permissions: {contents: read}
+concurrency: {group: veriqta-trusted-release, cancel-in-progress: false}
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    environment: veriqta-release
+    runs-on: ubuntu-24.04
+    permissions: {contents: read, packages: write}
+    steps:
+      - uses: actions/checkout@v5
+      - run: python3 -m unittest discover -s tests -v
+      - uses: sigstore/cosign-installer@v3.9.2
+        with: {cosign-release: v2.5.3}
+      - name: Build, scan and sign approved digest
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SIGNING_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p .private
+          trap 'rm -f .private/cosign.key' EXIT
+          printf '%s' "$SIGNING_KEY" > .private/cosign.key
+          printf '%s' "$PUBLIC_KEY" > .private/cosign.pub
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          image="ghcr.io/$owner/veriqta-api:$GITHUB_SHA"
+          printf '%s' "$TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker build -f app/Dockerfile -t "$image" .
+          docker push "$image"
+          export IMAGE_REF=$(docker inspect --format='{{index .RepoDigests 0}}' "$image")
+          syft() { docker run --rm --user 0 -e DOCKER_CONFIG=/root/.docker -v "$HOME/.docker:/root/.docker:ro" anchore/syft:v1.27.1 "$@"; }
+          trivy() {
+            # The script supplies an output path; mount the working tree for its JSON file.
+            docker run --rm --user 0 -e DOCKER_CONFIG=/root/.docker -v "$HOME/.docker:/root/.docker:ro" -v "$PWD:/workspace" -w /workspace aquasec/trivy:0.65.0 "$@"
+          }
+          export -f syft trivy
+          bash tools/supply-chain.sh
+          printf 'Approved image: `%s`\n' "$IMAGE_REF" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-verification
+          path: artifacts/supply-chain/
+          retention-days: 14
