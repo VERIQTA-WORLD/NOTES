@@ -1,0 +1,11 @@
+route:
+  receiver: lab
+  group_by: [alertname]
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 1h
+receivers:
+  - name: lab
+    webhook_configs:
+      - url: http://receiver:8081/
+        send_resolved: true

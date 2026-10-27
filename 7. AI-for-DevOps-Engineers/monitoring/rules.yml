@@ -1,0 +1,20 @@
+groups:
+  - name: veriqta-api
+    rules:
+      - record: veriqta:error_ratio:5m
+        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) or vector(0)) / sum(rate(http_requests_total[5m]))
+      - alert: VeriqtaApiErrors
+        expr: veriqta:error_ratio:5m > 0.02 and sum(increase(http_requests_total[5m])) >= 100
+        for: 1m
+        labels: {severity: warning}
+        annotations: {summary: Business request error fraction exceeds two percent}
+      - alert: VeriqtaApiSlow
+        expr: histogram_quantile(0.95, sum by(le) (rate(http_request_duration_seconds_bucket[5m]))) > 0.3 and sum(increase(http_requests_total[5m])) >= 100
+        for: 1m
+        labels: {severity: warning}
+        annotations: {summary: Business request p95 latency exceeds 300 ms}
+      - alert: VeriqtaApiTelemetryUnavailable
+        expr: absent(up{job="veriqta-api"}) or max(up{job="veriqta-api"}) == 0
+        for: 1m
+        labels: {severity: warning}
+        annotations: {summary: API telemetry unavailable}

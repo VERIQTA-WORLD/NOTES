@@ -1,0 +1,10 @@
+{
+  "events": [
+    {
+      "reason": "ScalingReplicaSet",
+      "type": "Normal",
+      "count": 1,
+      "timestamp": "2026-01-01T14:05:00Z"
+    }
+  ]
+}

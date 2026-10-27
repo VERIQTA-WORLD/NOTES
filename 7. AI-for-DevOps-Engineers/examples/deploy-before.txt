@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Review exercise only. Do not execute this stop-first example.
+echo "Stopping application..."
+docker stop veriqta-app
+docker rm veriqta-app
+docker run -d --name veriqta-app veriqta-ai-api:latest

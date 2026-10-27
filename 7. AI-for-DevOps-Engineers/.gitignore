@@ -1,0 +1,14 @@
+.venv/
+.private/
+artifacts/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.env
+.env.*
+.terraform/
+*.tfstate*
+*.tfplan
+*.auto.tfvars

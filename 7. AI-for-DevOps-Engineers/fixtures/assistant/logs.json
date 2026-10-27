@@ -1,0 +1,16 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-01-01T14:06:00Z",
+      "event": "dependency_failed",
+      "error_kind": "database_unavailable"
+    },
+    {
+      "timestamp": "2026-01-01T14:06:00Z",
+      "event": "request",
+      "status": 500,
+      "path": "/api/users"
+    }
+  ],
+  "skipped_unstructured_lines": 0
+}

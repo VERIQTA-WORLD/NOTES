@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Review exercise only. The message does not implement a backup.
+echo "Stopping application and backing up..."
+docker stop veriqta-app
+docker rm veriqta-app
+docker run -d --name veriqta-app   -e ENV=production -p 8080:80 veriqta-ai-api:latest

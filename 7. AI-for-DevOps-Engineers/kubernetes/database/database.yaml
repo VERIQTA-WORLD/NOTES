@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: veriqta-db}
+  template:
+    metadata:
+      labels: {app: veriqta-db}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: db
+          image: postgres:17-bookworm
+          env:
+            - {name: POSTGRES_DB, value: veriqta}
+            - {name: POSTGRES_USER, value: veriqta}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: database, key: password}
+          ports: [{containerPort: 5432}]
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: '1', memory: 512Mi}
+          readinessProbe:
+            exec: {command: [pg_isready, -h, 127.0.0.1, -U, veriqta, -d, veriqta]}
+            periodSeconds: 3
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/postgresql/data}
+            - {name: init, mountPath: /docker-entrypoint-initdb.d, readOnly: true}
+      volumes:
+        - {name: data, emptyDir: {}}
+        - {name: init, configMap: {name: db-init}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  selector: {app: veriqta-db}
+  ports: [{port: 5432, targetPort: 5432}]

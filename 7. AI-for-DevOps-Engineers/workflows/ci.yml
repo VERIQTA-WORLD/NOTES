@@ -1,0 +1,44 @@
+name: Veriqta Python CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions: {contents: read}
+concurrency:
+  group: veriqta-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test-and-build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements-dev.txt
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pytest --maxfail=1 --junitxml=artifacts/junit.xml
+      - run: python -m build
+      - run: docker build -t veriqta-ai-api:ci .
+      - name: Smoke-test the container
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --name veriqta-ci -e APP_CONFIG=lab -p 127.0.0.1:8000:8000 veriqta-ai-api:ci
+          trap 'docker logs veriqta-ci; docker rm -f veriqta-ci' EXIT
+          for attempt in {1..30}; do
+            if python tools/check_service.py http://localhost:8000/health; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: veriqta-test-results
+          path: artifacts/junit.xml
+          if-no-files-found: warn

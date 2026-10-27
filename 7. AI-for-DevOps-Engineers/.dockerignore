@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+.private
+artifacts
+**/__pycache__
+**/*.pyc
+**/*.egg-info
+dist
+build
+.env
+.env.*
+**/.terraform
+**/*.tfstate*
+**/*.tfplan
+node_modules

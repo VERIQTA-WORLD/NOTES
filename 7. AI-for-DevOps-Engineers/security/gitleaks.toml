@@ -1,0 +1,3 @@
+title = "Veriqta secret scan"
+[extend]
+useDefault = true

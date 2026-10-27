@@ -1,0 +1,61 @@
+name: Veriqta disposable Kubernetes recovery
+on: workflow_dispatch
+permissions: {contents: read}
+jobs:
+  recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.12'}
+      - name: Create a disposable lab
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://kind.sigs.k8s.io/dl/v0.27.0/kind-linux-amd64 -o /tmp/kind
+          chmod +x /tmp/kind
+          sudo mv /tmp/kind /usr/local/bin/kind
+          curl -fsSL https://dl.k8s.io/release/v1.32.2/bin/linux/amd64/kubectl -o /tmp/kubectl
+          chmod +x /tmp/kubectl
+          sudo mv /tmp/kubectl /usr/local/bin/kubectl
+          kind create cluster --name veriqta-ai --config kubernetes/kind.yaml
+          kubectl config use-context kind-veriqta-ai
+          docker build -t veriqta-ai-api:lab .
+          kind load docker-image veriqta-ai-api:lab --name veriqta-ai
+          mkdir -p .private
+          python -c "import pathlib,secrets; p=pathlib.Path('.private/db-password'); p.write_text(secrets.token_urlsafe(32)); p.chmod(0o600)"
+          for namespace in veriqta-staging veriqta-prod; do
+            kubectl create namespace "$namespace"
+            kubectl -n "$namespace" create secret generic database --from-file=password=.private/db-password
+          done
+          kubectl apply -k kubernetes/environments/staging
+          kubectl apply -k kubernetes/environments/prod
+          for namespace in veriqta-staging veriqta-prod; do
+            kubectl -n "$namespace" rollout status deployment/db --timeout=180s
+            kubectl -n "$namespace" rollout status deployment/api --timeout=180s
+            python tools/verify_business.py --namespace "$namespace"
+          done
+      - name: Reproduce the bad release
+        shell: bash
+        run: |
+          set -euo pipefail
+          kubectl -n veriqta-prod set env deployment/api RELEASE=v2 DB_PORT=5433
+          kubectl -n veriqta-prod rollout status deployment/api --timeout=180s
+          python tools/verify_business.py --namespace veriqta-prod --expect-error 500
+          python tools/collect_kube.py --namespace veriqta-prod --output artifacts/incident
+      - name: Roll back and verify
+        run: |
+          kubectl -n veriqta-prod rollout undo deployment/api
+          kubectl -n veriqta-prod rollout status deployment/api --timeout=180s
+          python tools/verify_business.py --namespace veriqta-prod
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: veriqta-lab-evidence
+          path: artifacts/incident/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Remove disposable cluster
+        if: always()
+        run: kind delete cluster --name veriqta-ai

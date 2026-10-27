@@ -1,0 +1,19 @@
+{
+  "deployments": [
+    {
+      "name": "api",
+      "desired": 3,
+      "ready": 3,
+      "containers": [
+        {
+          "name": "api",
+          "settings": {
+            "DB_HOST": "db",
+            "DB_PORT": "5433",
+            "RELEASE": "v2"
+          }
+        }
+      ]
+    }
+  ]
+}

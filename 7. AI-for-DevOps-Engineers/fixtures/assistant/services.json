@@ -1,0 +1,22 @@
+{
+  "services": [
+    {
+      "name": "api",
+      "ports": [
+        {
+          "port": 80,
+          "targetPort": "http"
+        }
+      ]
+    },
+    {
+      "name": "db",
+      "ports": [
+        {
+          "port": 5432,
+          "targetPort": "5432"
+        }
+      ]
+    }
+  ]
+}

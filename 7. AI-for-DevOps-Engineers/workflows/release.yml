@@ -1,0 +1,26 @@
+name: Veriqta image release
+on:
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    environment: veriqta-release
+    runs-on: ubuntu-24.04
+    permissions: {contents: read, packages: write}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: {python-version: '3.12'}
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pytest --maxfail=1
+      - name: Build and publish commit image
+        env: {TOKEN: '${{ secrets.GITHUB_TOKEN }}'}
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          image="ghcr.io/$owner/veriqta-ai-api:$GITHUB_SHA"
+          printf '%s' "$TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker build -t "$image" .
+          docker push "$image"
+          docker inspect --format='{{index .RepoDigests 0}}' "$image" >> "$GITHUB_STEP_SUMMARY"

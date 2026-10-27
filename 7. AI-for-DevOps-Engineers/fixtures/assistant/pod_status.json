@@ -1,0 +1,13 @@
+{
+  "name": "veriqta-api-example",
+  "phase": "Running",
+  "containers": [
+    {
+      "name": "api",
+      "ready": true,
+      "restarts": 0,
+      "state": "running",
+      "reason": ""
+    }
+  ]
+}

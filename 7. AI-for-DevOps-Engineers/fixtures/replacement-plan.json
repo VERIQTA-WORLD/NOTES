@@ -1,0 +1,32 @@
+{
+  "format_version": "1.2",
+  "resource_changes": [
+    {
+      "address": "aws_instance.veriqta",
+      "action_reason": "replace_because_cannot_update",
+      "change": {
+        "actions": [
+          "delete",
+          "create"
+        ],
+        "before": {
+          "ami": "ami-example-old",
+          "instance_type": "t3.micro"
+        },
+        "after": {
+          "ami": "ami-example-new",
+          "instance_type": "t3.micro"
+        },
+        "after_unknown": {
+          "id": true,
+          "private_ip": true
+        },
+        "replace_paths": [
+          [
+            "ami"
+          ]
+        ]
+      }
+    }
+  ]
+}

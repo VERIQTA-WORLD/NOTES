@@ -1,0 +1,5 @@
+{"timestamp":"2026-01-01T14:04:00Z","service":"veriqta-api","event":"request","release":"v1","path":"/api/users","status":200,"duration_seconds":0.01}
+{"timestamp":"2026-01-01T14:05:00Z","service":"veriqta-api","event":"startup","release":"v2"}
+{"timestamp":"2026-01-01T14:06:00Z","service":"veriqta-api","event":"dependency_failed","release":"v2","error_kind":"database_unavailable"}
+{"timestamp":"2026-01-01T14:06:00Z","service":"veriqta-api","event":"request","release":"v2","path":"/api/users","status":500,"duration_seconds":0.02}
+{"timestamp":"2026-01-01T14:06:01Z","service":"veriqta-api","event":"request","release":"v2","path":"/health","status":500,"duration_seconds":0.02}
