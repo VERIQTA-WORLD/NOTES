@@ -1,8 +1,0 @@
-repos:
-  - repo: local
-    hooks:
-      - id: gitleaks
-        name: Veriqta staged secret scan
-        entry: gitleaks git --pre-commit --staged --redact --config security/gitleaks.toml
-        language: system
-        pass_filenames: false

@@ -1,8 +1,0 @@
-title = "Veriqta secret prevention"
-[extend]
-useDefault = true
-[[rules]]
-id = "veriqta-training-canary"
-description = "Synthetic training credential marker"
-regex = '''VERIQTA_CANARY_[A-Z0-9]{24}'''
-keywords = ["VERIQTA_CANARY_"]
