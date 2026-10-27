@@ -1,0 +1,46 @@
+name: veriqta-recovery
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: veriqta
+      POSTGRES_USER: veriqta
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes:
+      - data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U veriqta -d veriqta"]
+      interval: 3s
+      retries: 30
+  restored:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: veriqta
+      POSTGRES_USER: veriqta
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes: ["restore-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U veriqta -d veriqta"]
+      interval: 3s
+      retries: 30
+  api:
+    build: {context: .., dockerfile: app/Dockerfile}
+    image: veriqta-api:lab
+    environment:
+      VERSION: recovered
+      DB_HOST: restored
+      DB_NAME: veriqta
+      DB_USER: veriqta
+    entrypoint: [sh, -c, 'export DB_PASSWORD="$$(cat /run/secrets/db_password)"; exec python -u api.py']
+    secrets: [db_password]
+    ports: ["127.0.0.1:8085:8080"]
+    depends_on:
+      restored: {condition: service_healthy}
+secrets:
+  db_password: {file: ../.private/db-password}
+volumes:
+  data:
+  restore-data:

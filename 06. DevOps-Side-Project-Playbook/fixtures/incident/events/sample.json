@@ -1,0 +1,16 @@
+{
+  "kind": "EventList",
+  "items": [
+    {
+      "metadata": {
+        "creationTimestamp": "2026-01-15T10:12:00Z"
+      },
+      "lastTimestamp": "2026-01-15T10:12:00Z",
+      "reason": "ScalingReplicaSet",
+      "message": "New API ReplicaSet created",
+      "involvedObject": {
+        "name": "api"
+      }
+    }
+  ]
+}

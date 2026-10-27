@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.private/
+artifacts/
+.terraform/
+*.tfstate*
+*.tfplan
+*.auto.tfvars
+cosign.key

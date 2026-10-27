@@ -1,0 +1,40 @@
+{
+  "resource_drift": [
+    {
+      "address": "aws_vpc_security_group_ingress_rule.ssh",
+      "change": {
+        "actions": [
+          "update"
+        ],
+        "before": {
+          "cidr_ipv4": "10.42.0.0/16",
+          "ip_protocol": "tcp",
+          "from_port": 22,
+          "to_port": 22
+        },
+        "after": {
+          "cidr_ipv4": "0.0.0.0/0",
+          "ip_protocol": "tcp",
+          "from_port": 22,
+          "to_port": 22
+        }
+      }
+    }
+  ],
+  "resource_changes": [
+    {
+      "address": "aws_vpc_security_group_ingress_rule.ssh",
+      "change": {
+        "actions": [
+          "update"
+        ],
+        "before": {
+          "cidr_ipv4": "0.0.0.0/0"
+        },
+        "after": {
+          "cidr_ipv4": "10.42.0.0/16"
+        }
+      }
+    }
+  ]
+}

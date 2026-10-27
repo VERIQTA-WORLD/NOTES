@@ -1,0 +1,5 @@
+{
+  "timestamp": "2026-01-15T10:12:00Z",
+  "service": "api",
+  "event": "deployment bad-pool revision abc123"
+}
